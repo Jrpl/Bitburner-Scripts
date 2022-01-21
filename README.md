@@ -18,27 +18,27 @@ __Deletes any existing purchased servers at the start__\
 All purchased servers follow the same naming format of `pserv + index` so servers will be labeled starting with `pserv-0` through `pserv-24`
 
 ## hack-manager.js
-___Requires `targeted_hack.js`, `targeted_grow.js`, `targeted_weaken.js`, and `utils.js` to run___\
+___Requires `targeted-hack.js`, `targeted-grow.js`, `targeted-weaken.js`, and `utils.js` to run___\
 Targets server with the most money that is possible for the player to hack and then continually executes `targeted-hack.js`, `targeted-grow.js`, and `targeted-weaken.js` scripts on that target.\
 It is timed so that the hack, grow, and weaken for each cycle finish in order, so as to maintain optimal security level and money amount on the server.\
 Part of maintaining this synchrony is only executing this targeted script cycle for the duration of how long the time to hack is.\
 Any longer and hacks will initiate after the first hack finishes but before the weaken, increasing the hack time to take longer than accounted for in the initial delay.
 
-## targeted_hack.js
+## targeted-hack.js
 Targets a specific server to hack after an initial delay decided by `hack-manager.js`.\
 Takes three arguments:
 - `threads`: number of threads to use on hack, calculated to take half of a servers money
 - `hack_delay`: time to sleep before initiating hack
 - `target`: the server to target for the hack
 
-## targeted_grow.js
+## targeted-grow.js
 Targets a specific server to grow after an initial delay decided by `hack-manager.js`.\
 Takes three arguments:
 - `threads`: number of threads to use on grow, calculated to double the servers money
 - `grow_delay`: time to sleep before initiating grow
 - `target`: the server to target for the grow
 
-## targeted_weaken.js
+## targeted-weaken.js
 Targets a specific server to weaken decided by `hack-manager.js`.\
 Takes two arguments:
 - `threads`: number of threads to use on weaken, calculated to decrease security by the amount of increase from `targeted_hack.js`, and `targeted_grow.js`
