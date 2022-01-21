@@ -4,6 +4,7 @@ Listed below is the name of each available script and a short description of wha
 __Note that all of the scripts listed require that you are using [ns2](https://bitburner.readthedocs.io/en/latest/netscript/netscriptjs.html) instead of [ns1](https://bitburner.readthedocs.io/en/latest/netscript/netscript1.html)__
 
 ## hacknet-upgrades.js
+___Credit to user [u/boz987](https://www.reddit.com/r/Bitburner/comments/71sxly/hacknet_nodes_script_optimalish_calcs/) on Reddit for return on investment math___\
 Automatically purchases hacknet servers and upgrades based on a percentage of your current money.\
 Takes a single argument `pct` which is the percentage of your money that you would like to spend.\
 `pct` is of type integer. The percentage is automatically converted to a decimal for the calculations.\
@@ -36,6 +37,11 @@ Takes three arguments:
 - `target`: The name of the server to hack.
 - `moneyThresh`: The minimum amount of money required on the server before hacking.
 - `securityThresh`: The minimum amount of security level required on the server before hacking.
+
+## hack-manager.js
+___requires: `targeted_hack.js`, `targeted_grow.js`, and `targeted_weaken.js`___\
+Targets server with the most money that is possible for you to hack and then continually executes the targeted hack, grow, weaken scripts on that target.\
+Requires a lot of RAM early on, but is one of the most efficient xp and money making hack scripts.
 
 ## utils.js
 Contains various utility functions used throughout the other scripts.
@@ -78,8 +84,3 @@ ___Will possibly be move out of `utils.js` since it is currently only used in `b
 Loops through existing purchased servers, kills any active scripts, and then deletes the server.\
 Takes one argument:
 - `ns`: The Netscript package.
-
-### hack_manager.js
-___requires: `targeted_hack.js`, `targeted_grow.js`, and `targeted_weaken.js`___\
-Targets server with the most money that is possible for you to hack and then continually executes the targeted hack, grow, weaken scripts on that target.\
-Requires a lot of RAM early on, but is one of the most efficient xp and money making hack scripts.
