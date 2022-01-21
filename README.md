@@ -41,7 +41,7 @@ Takes three arguments:
 ## targeted-weaken.js
 Targets a specific server to weaken decided by `hack-manager.js`.\
 Takes two arguments:
-- `threads`: number of threads to use on weaken, calculated to decrease security by the amount of increase from `targeted_hack.js`, and `targeted_grow.js`
+- `threads`: number of threads to use on weaken, calculated to decrease security by the amount of increase from `targeted-hack.js`, and `targeted-grow.js`
 - `target`: the server to target for the weaken
 
 ## startup-hacks.js
