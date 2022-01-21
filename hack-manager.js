@@ -1,23 +1,5 @@
 /** @param {NS} ns **/
-export function multiscan(ns, host){
-	
-	let servers = [];
-	let currentscan = ns.scan(host);
-	currentscan.forEach(server => {
-		servers.push(server);
-	})
-	for(let i = 0; i < 20; i++){
-		servers.forEach(server => {
-		let possible_connections = ns.scan(server);
-		possible_connections.forEach(connection =>{
-			if(servers.includes(connection) == 0){
-			servers.push(connection);
-			}
-		})
-	})
-	}
-	return servers;
-}
+import { multiscan, gainRootAccess } from "utils.js";
 
 function maxElement(arr){
 	let max = 0;
@@ -36,31 +18,14 @@ export function best_target(ns, arr){
 	let results = [];
 	arr.forEach(server => {
 		if(!ns.hasRootAccess(server)){
-				if(ns.fileExists('brutessh.exe')){
-					ns.brutessh(server);
-				}
-				if(ns.fileExists('ftpcrack.exe')){
-					ns.ftpcrack(server);
-				}
-				if(ns.fileExists('sqlinject.exe')){
-					ns.sqlinject(server);
-				}
-				if(ns.fileExists('relaysmtp.exe')){
-					ns.relaysmtp(server);
-				}
-				if(ns.fileExists('httpworm.exe')){
-					ns.httpworm(server);
-				}
-				try{
-					ns.nuke(server);
-				}
-				catch {}
+			gainRootAccess(ns, server);
 		}
 
 		if(ns.hasRootAccess(server) && ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel() && server != 'home' && !ns.getPurchasedServers().includes(server)){
 			list.push(server);
 		}
 	})
+
 	let i = 0;
 	list.forEach(target => {
 		results[i] = ns.getServerMaxMoney(target);
@@ -70,11 +35,8 @@ export function best_target(ns, arr){
 	return list[maxElement(results)];
 }
 
-
 export async function main(ns) {
-	
 	while(true){
-
 		// creates list of all servers within 20 connections
 		let full_list = multiscan(ns, 'home');
 
@@ -106,7 +68,6 @@ export async function main(ns) {
 			ns.exec('targeted_weaken.js', 'home', wt, wt, hack_target);
 			await ns.sleep(ns.getWeakenTime(hack_target) + 1000);  
 		}
-		
 		
 		// determines threads needed for grow hack and weaken to maintain optimal profit
 		const grow_threads = ns.growthAnalyze(hack_target, 2);
@@ -143,7 +104,6 @@ export async function main(ns) {
 		// sets a variable to keep track of time taken executing hacks in the loop
 		// if a hack were initiated later than the reset time the first hack would complete changing hack times for every hack following it throwing off the sync
 		// most of the time execution time doesn't take that long but this safeguards overly draining a target through desync
-
 		let initial_time = Date.now();
 		let k = 0;
 
@@ -190,14 +150,9 @@ export async function main(ns) {
 				n--;
 			}
 
-			
 			await ns.sleep(5);
-
 		}
 
 		await ns.sleep(10);
-		
 	}
-
-	
 }
