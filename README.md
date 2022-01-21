@@ -4,7 +4,7 @@ Listed below is the name of each available script and a short description of wha
 __Note that all of the scripts listed require that you are using [ns2](https://bitburner.readthedocs.io/en/latest/netscript/netscriptjs.html) instead of [ns1](https://bitburner.readthedocs.io/en/latest/netscript/netscript1.html)__
 
 ## hacknet-upgrades.js
-___Credit to user [u/boz987](https://www.reddit.com/r/Bitburner/comments/71sxly/hacknet_nodes_script_optimalish_calcs/) on Reddit for return on investment math___\
+___Credit to [u/boz987](https://www.reddit.com/r/Bitburner/comments/71sxly/hacknet_nodes_script_optimalish_calcs/) on Reddit for return on investment math___\
 Automatically purchases hacknet servers and upgrades based on a percentage of your current money.\
 Takes a single argument `pct` which is the percentage of your money that you would like to spend.\
 `pct` is of type integer. The percentage is automatically converted to a decimal for the calculations.\
@@ -13,12 +13,16 @@ If purchasing an upgrade is better, it will then determine which type of upgrade
 
 ## buy-servers.js
 ___Requires `utils.js` to run___\
-Automatically purchases 25 servers with the highest amount of RAM possible given your current money.\
+Automatically purchases 25 servers with the highest amount of RAM possible given the player's current money.\
 __Deletes any existing purchased servers at the start__\
 All purchased servers follow the same naming format of `pserv + index` so servers will be labeled starting with `pserv-0` through `pserv-24`
 
+## hack-manager.js
+___Requires `targeted_hack.js`, `targeted_grow.js`, `targeted_weaken.js`, and `utils.js` to run___\
+Targets server with the most money that is possible for the player to hack and then continually executes `targeted-hack.js`, `targeted-grow.js`, and `targeted-weaken.js` scripts on that target.
+
 ## startup-hacks.js
-___Has been replaced by `multihack.js`___\
+___Has been replaced by `hack-manager.js`___\
 ___Requires `utils.js` to run___\
 Scans all available servers in the current bitnode.\
 Finds a target server with the highest maximum money.\
@@ -37,11 +41,6 @@ Takes three arguments:
 - `target`: The name of the server to hack.
 - `moneyThresh`: The minimum amount of money required on the server before hacking.
 - `securityThresh`: The minimum amount of security level required on the server before hacking.
-
-## hack-manager.js
-___requires: `targeted_hack.js`, `targeted_grow.js`, and `targeted_weaken.js`___\
-Targets server with the most money that is possible for you to hack and then continually executes the targeted hack, grow, weaken scripts on that target.\
-Requires a lot of RAM early on, but is one of the most efficient xp and money making hack scripts.
 
 ## utils.js
 Contains various utility functions used throughout the other scripts.
@@ -65,7 +64,7 @@ If the player does not have enough files to open the required number of ports by
 
 ### findTargetServer
 ___Will be moved out of `utils.js` and into `startup-hacks.js`___\
-___Used in `startup-hacks.js` which has been replaced by `multihack.js`___\
+___Used in `startup-hacks.js` which has been replaced by `hack-manager.js`___\
 Loops through all hackable servers and finds the one with the highest max money.\
 Takes two arguments:
 - `ns`: The Netscript package.
