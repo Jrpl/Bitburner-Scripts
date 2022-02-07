@@ -1,10 +1,10 @@
 /** @param {NS} ns **/
 import { multiscan, gainRootAccess } from "utils.js";
 
-function maxElement(arr){
+function maxElement(arr) {
 	let max = 0;
-	for(let i = 0; i < arr.length; i++){
-		if(arr[i] > max){
+	for (let i = 0; i < arr.length; i++) {
+		if (arr[i] > max) {
 			max = arr[i]
 		}
 	}
@@ -13,15 +13,15 @@ function maxElement(arr){
 	return maxE
 }
 
-export function best_target(ns, arr){
+export function best_target(ns, arr) {
 	let list = [];
 	let results = [];
 	arr.forEach(server => {
-		if(!ns.hasRootAccess(server)){
+		if (!ns.hasRootAccess(server)) {
 			gainRootAccess(ns, server);
 		}
 
-		if(ns.hasRootAccess(server) && ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel() && server != 'home' && !ns.getPurchasedServers().includes(server)){
+		if (ns.hasRootAccess(server) && ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel() && server != 'home' && !ns.getPurchasedServers().includes(server)) {
 			list.push(server);
 		}
 	})
@@ -36,8 +36,7 @@ export function best_target(ns, arr){
 }
 
 export async function main(ns) {
-	while(true){
-		// creates list of all servers within 20 connections
+	while (true) {
 		let full_list = multiscan(ns, 'home');
 
 		// finds most profitable server to target
@@ -46,35 +45,35 @@ export async function main(ns) {
 		// prepares target to be hacked uses home to weaken and grow server to required initial conditions
 		const initial_growth_amount = .5 * ns.getServerMaxMoney(hack_target) / ns.getServerMoneyAvailable(hack_target);
 		let gt = 0;
-		if(initial_growth_amount > 1){
+		if (initial_growth_amount > 1) {
 			gt = ns.growthAnalyze(hack_target, initial_growth_amount);
 		}
 
 		let wt = 0;
-		while(ns.weakenAnalyze(wt) < ns.getServerSecurityLevel(hack_target) + ns.growthAnalyzeSecurity(gt) - ns.getServerMinSecurityLevel(hack_target)){
+		while (ns.weakenAnalyze(wt) < ns.getServerSecurityLevel(hack_target) + ns.growthAnalyzeSecurity(gt) - ns.getServerMinSecurityLevel(hack_target)) {
 			wt++;
 		}
-		if(wt == 0){
+		if (wt == 0) {
 			wt = 1;
 		}
 
-		if(gt > 1){
+		if (gt > 1) {
 			ns.exec('targeted-grow.js', 'home', gt, gt, 0, hack_target);
 			ns.exec('targeted-weaken.js', 'home', wt, wt, hack_target);
-			await ns.sleep(ns.getWeakenTime(hack_target) + 1000); 
+			await ns.sleep(ns.getWeakenTime(hack_target) + 1000);
 		}
-		
-		else if(ns.getServerSecurityLevel(hack_target) > ns.getServerMinSecurityLevel(hack_target) * 1.5){
+
+		else if (ns.getServerSecurityLevel(hack_target) > ns.getServerMinSecurityLevel(hack_target) * 1.5) {
 			ns.exec('targeted-weaken.js', 'home', wt, wt, hack_target);
-			await ns.sleep(ns.getWeakenTime(hack_target) + 1000);  
+			await ns.sleep(ns.getWeakenTime(hack_target) + 1000);
 		}
-		
+
 		// determines threads needed for grow hack and weaken to maintain optimal profit
 		const grow_threads = ns.growthAnalyze(hack_target, 2);
 		const hack_threads = ns.hackAnalyzeThreads(hack_target, ns.getServerMoneyAvailable(hack_target) / 2);
 		const sec_increase = ns.hackAnalyzeSecurity(hack_threads) + ns.growthAnalyzeSecurity(grow_threads);
 		let weaken_threads = 1;
-		while(ns.weakenAnalyze(weaken_threads) < sec_increase * 1.1){
+		while (ns.weakenAnalyze(weaken_threads) < sec_increase * 1.1) {
 			weaken_threads++;
 		}
 
@@ -86,17 +85,17 @@ export async function main(ns) {
 		let purchased_servers = ns.getPurchasedServers();
 		let host_servers = [];
 
-		purchased_servers.forEach(server =>{
-			if(ns.getServerMaxRam(server) >= needed_ram){
+		purchased_servers.forEach(server => {
+			if (ns.getServerMaxRam(server) >= needed_ram) {
 				host_servers.push(server);
 			}
 		})
 
-		if(ns.getServerMaxRam('home') >= needed_ram){
+		if (ns.getServerMaxRam('home') >= needed_ram) {
 			host_servers.push('home');
 		}
 
-		if(host_servers == 0){
+		if (host_servers == 0) {
 			ns.print('No RAM fam gotta get some for this good stuff');
 			return 0
 		}
@@ -107,7 +106,7 @@ export async function main(ns) {
 		let initial_time = Date.now();
 		let k = 0;
 
-		for(let i = 0; i < host_servers.length; i++) {
+		for (let i = 0; i < host_servers.length; i++) {
 
 			let weaken_time = ns.getWeakenTime(hack_target);
 			let grow_time = ns.getGrowTime(hack_target);
@@ -123,14 +122,14 @@ export async function main(ns) {
 			await ns.scp('targeted-grow.js', server);
 			await ns.scp('targeted-hack.js', server);
 			await ns.scp('targeted-weaken.js', server);
-			
+
 			// loops through a cycle of grow weaken and hack executions on the target
 			// each script will complete in order of grow hack weaken 2 milliseconds apart
-			while(n > 0){
-				if(Date.now() >= initial_time + ns.getHackTime(hack_target)){
-					while(ns.getServerMaxRam(host_servers[k]) - ns.getServerUsedRam(host_servers[k]) < ns.getScriptRam('targeted-weaken', 'home') * weaken_threads){
+			while (n > 0) {
+				if (Date.now() >= initial_time + ns.getHackTime(hack_target)) {
+					while (ns.getServerMaxRam(host_servers[k]) - ns.getServerUsedRam(host_servers[k]) < ns.getScriptRam('targeted-weaken', 'home') * weaken_threads) {
 						k++;
-						if(k == host_servers.length){
+						if (k == host_servers.length) {
 							k = 0;
 							await ns.sleep(10000);
 						}
@@ -146,7 +145,7 @@ export async function main(ns) {
 				ns.exec('targeted-grow.js', server, grow_threads, grow_threads, grow_delay, hack_target, n);
 				ns.exec('targeted-hack.js', server, hack_threads, hack_threads, hack_delay, hack_target, n);
 				await ns.sleep(3);
-				
+
 				n--;
 			}
 
