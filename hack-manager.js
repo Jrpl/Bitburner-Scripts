@@ -59,13 +59,13 @@ export async function main(ns) {
 		}
 
 		if(gt > 1){
-			ns.exec('targeted_grow.js', 'home', gt, gt, 0, hack_target);
-			ns.exec('targeted_weaken.js', 'home', wt, wt, hack_target);
+			ns.exec('targeted-grow.js', 'home', gt, gt, 0, hack_target);
+			ns.exec('targeted-weaken.js', 'home', wt, wt, hack_target);
 			await ns.sleep(ns.getWeakenTime(hack_target) + 1000); 
 		}
 		
 		else if(ns.getServerSecurityLevel(hack_target) > ns.getServerMinSecurityLevel(hack_target) * 1.5){
-			ns.exec('targeted_weaken.js', 'home', wt, wt, hack_target);
+			ns.exec('targeted-weaken.js', 'home', wt, wt, hack_target);
 			await ns.sleep(ns.getWeakenTime(hack_target) + 1000);  
 		}
 		
@@ -79,7 +79,7 @@ export async function main(ns) {
 		}
 
 		// determines needed RAM for a cycle of grow weaken hack with determined threads
-		const needed_ram = (grow_threads * ns.getScriptRam('targeted_grow.js', 'home') + hack_threads * ns.getScriptRam('targeted_hack.js', 'home') + weaken_threads * ns.getScriptRam('targeted_weaken.js', 'home'));
+		const needed_ram = (grow_threads * ns.getScriptRam('targeted-grow.js', 'home') + hack_threads * ns.getScriptRam('targeted-hack.js', 'home') + weaken_threads * ns.getScriptRam('targeted-weaken.js', 'home'));
 
 		// goes through Purchased servers and creates list of servers with enough RAM to utilize 
 		// note only Purchased servers are going to reliably have enough RAM
@@ -120,31 +120,31 @@ export async function main(ns) {
 			let n = Math.floor((ns.getServerMaxRam(server) - ns.getServerUsedRam(server)) / needed_ram);
 
 			// writes needed scripts to host server
-			await ns.scp('targeted_grow.js', server);
-			await ns.scp('targeted_hack.js', server);
-			await ns.scp('targeted_weaken.js', server);
+			await ns.scp('targeted-grow.js', server);
+			await ns.scp('targeted-hack.js', server);
+			await ns.scp('targeted-weaken.js', server);
 			
 			// loops through a cycle of grow weaken and hack executions on the target
 			// each script will complete in order of grow hack weaken 2 milliseconds apart
 			while(n > 0){
 				if(Date.now() >= initial_time + ns.getHackTime(hack_target)){
-					while(ns.getServerMaxRam(host_servers[k]) - ns.getServerUsedRam(host_servers[k]) < ns.getScriptRam('targeted_weaken', 'home') * weaken_threads){
+					while(ns.getServerMaxRam(host_servers[k]) - ns.getServerUsedRam(host_servers[k]) < ns.getScriptRam('targeted-weaken', 'home') * weaken_threads){
 						k++;
 						if(k == host_servers.length){
 							k = 0;
 							await ns.sleep(10000);
 						}
 					}
-					ns.exec('targeted_weaken.js', host_servers[k], weaken_threads, weaken_threads, hack_target);
+					ns.exec('targeted-weaken.js', host_servers[k], weaken_threads, weaken_threads, hack_target);
 					await ns.sleep(weaken_time + 20);
 					i = 0;
 					initial_time = Date.now();
 					break
 				}
 
-				ns.exec('targeted_weaken.js', server, weaken_threads, weaken_threads, hack_target, n);
-				ns.exec('targeted_grow.js', server, grow_threads, grow_threads, grow_delay, hack_target, n);
-				ns.exec('targeted_hack.js', server, hack_threads, hack_threads, hack_delay, hack_target, n);
+				ns.exec('targeted-weaken.js', server, weaken_threads, weaken_threads, hack_target, n);
+				ns.exec('targeted-grow.js', server, grow_threads, grow_threads, grow_delay, hack_target, n);
+				ns.exec('targeted-hack.js', server, hack_threads, hack_threads, hack_delay, hack_target, n);
 				await ns.sleep(3);
 				
 				n--;
