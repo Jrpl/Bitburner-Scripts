@@ -42,32 +42,6 @@ export async function main(ns) {
 		// finds most profitable server to target
 		const hack_target = best_target(ns, full_list);
 
-		// prepares target to be hacked uses home to weaken and grow server to required initial conditions
-		const initial_growth_amount = .5 * ns.getServerMaxMoney(hack_target) / ns.getServerMoneyAvailable(hack_target);
-		let gt = 0;
-		if (initial_growth_amount > 1) {
-			gt = ns.growthAnalyze(hack_target, initial_growth_amount);
-		}
-
-		let wt = 0;
-		while (ns.weakenAnalyze(wt) < ns.getServerSecurityLevel(hack_target) + ns.growthAnalyzeSecurity(gt) - ns.getServerMinSecurityLevel(hack_target)) {
-			wt++;
-		}
-		if (wt == 0) {
-			wt = 1;
-		}
-
-		if (gt > 1) {
-			ns.exec('targeted-grow.js', 'home', gt, gt, 0, hack_target);
-			ns.exec('targeted-weaken.js', 'home', wt, wt, hack_target);
-			await ns.sleep(ns.getWeakenTime(hack_target) + 1000);
-		}
-
-		else if (ns.getServerSecurityLevel(hack_target) > ns.getServerMinSecurityLevel(hack_target) * 1.5) {
-			ns.exec('targeted-weaken.js', 'home', wt, wt, hack_target);
-			await ns.sleep(ns.getWeakenTime(hack_target) + 1000);
-		}
-
 		// determines threads needed for grow hack and weaken to maintain optimal profit
 		const grow_threads = ns.growthAnalyze(hack_target, 2);
 		const hack_threads = ns.hackAnalyzeThreads(hack_target, ns.getServerMoneyAvailable(hack_target) / 2);
@@ -96,9 +70,46 @@ export async function main(ns) {
 		}
 
 		if (host_servers == 0) {
-			ns.print('No RAM fam gotta get some for this good stuff');
+			ns.print('Not enough RAM for proper hack cycle current needed is ' + needed_ram);
 			return 0
 		}
+
+		// prepares target to be hacked uses home to weaken and grow server to required initial conditions
+		const initial_growth_amount = .5 * ns.getServerMaxMoney(hack_target) / ns.getServerMoneyAvailable(hack_target);
+		let gt = 0;
+		if (initial_growth_amount > 1) {
+			gt = ns.growthAnalyze(hack_target, initial_growth_amount);
+		}
+
+		let wt = 0;
+		while (ns.weakenAnalyze(wt) < ns.getServerSecurityLevel(hack_target) + ns.growthAnalyzeSecurity(gt) - ns.getServerMinSecurityLevel(hack_target)) {
+			wt++;
+		}
+		if (wt == 0) {
+			wt = 1;
+		}
+
+		ns.print(wt + ' ' + gt);
+
+		let prep = 1;
+		const prep_RAM = ns.getScriptRam('targeted-grow.js', 'home') * gt + ns.getScriptRam('targeted-weaken.js', 'home') * wt;
+		const prep_server = host_servers.find(server => ns.getServerMaxRam(server) - ns.getServerUsedRam(server) >= prep_RAM);
+		if (prep_server == null) {
+			prep = 0;
+		}
+		ns.print(prep_server + ' ' + prep);
+
+		if (gt > 1 && prep) {
+			ns.exec('targeted-grow.js', prep_server, gt, gt, 0, hack_target);
+			ns.exec('targeted-weaken.js', prep_server, wt, wt, hack_target);
+			await ns.sleep(ns.getWeakenTime(hack_target) + 1000);
+		}
+
+		else if (ns.getServerSecurityLevel(hack_target) > ns.getServerMinSecurityLevel(hack_target) * 1.5 && prep) {
+			ns.exec('targeted-weaken.js', prep_server, wt, wt, hack_target);
+			await ns.sleep(ns.getWeakenTime(hack_target) + 1000);
+		}
+
 
 		// sets a variable to keep track of time taken executing hacks in the loop
 		// if a hack were initiated later than the reset time the first hack would complete changing hack times for every hack following it throwing off the sync
