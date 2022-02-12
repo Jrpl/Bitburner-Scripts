@@ -1,14 +1,10 @@
 /** @param {NS} ns **/
-export async function main(ns) {
+export async function main(ns, pct = ns.args[0], maxNodes = ns.args[1]) {
     while (true) {
         let myMoney = ns.getServerMoneyAvailable('home');
- 
-        function setAllowance(pct) {
-            const allowance = myMoney * (pct / 100);
-            return allowance;
-        }
+        let allowance = myMoney * (pct / 100);
 
-        if (ns.hacknet.getPurchaseNodeCost() < setAllowance(100)) {
+        if (ns.hacknet.getPurchaseNodeCost() < allowance && ns.hacknet.numNodes() < maxNodes) {
             ns.print('Purchasing new node');
             ns.hacknet.purchaseNode();
             continue;
@@ -43,20 +39,24 @@ export async function main(ns) {
                 }
             });
  
-            if (topRoI === 0) {
+            if ( i === maxNodes - 1 && topRoI === 0) {
+                ns.print("Desired number of nodes reached and upgraded");
+                ns.scriptKill(ns.getScriptName(), ns.getHostname());
+            }
+            else if (topRoI === 0) {
                 ns.print("All upgrades maxed on node" + i);
-            } else if (topRoI == RoI[0] && ns.hacknet.getLevelUpgradeCost(i, 1) < setAllowance(100)) {
+            } else if (topRoI == RoI[0] && ns.hacknet.getLevelUpgradeCost(i, 1) < allowance) {
                 ns.print('Upgrading Level on Node' + i);
                 ns.hacknet.upgradeLevel(i, 1);
-            } else if (topRoI == RoI[1] && ns.hacknet.getRamUpgradeCost(i, 1) < setAllowance(100)) {
+            } else if (topRoI == RoI[1] && ns.hacknet.getRamUpgradeCost(i, 1) < allowance) {
                 ns.print('Upgrading Ram on Node' + i);
                 ns.hacknet.upgradeRam(i, 1);
-            } else if (topRoI == RoI[2] && ns.hacknet.getCoreUpgradeCost(i, 1) < setAllowance(100)) {
+            } else if (topRoI == RoI[2] && ns.hacknet.getCoreUpgradeCost(i, 1) < allowance) {
                 ns.print('Upgrading Core on Node' + i);
                 ns.hacknet.upgradeCore(i, 1);
             }
         }
  
-        await ns.sleep(1000);
+        await ns.sleep(1);
     }
 }
