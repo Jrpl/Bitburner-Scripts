@@ -15,7 +15,6 @@ export function multiscan(ns, server) {
 }
 
 export function gainRootAccess(ns, server) {
-	const serverData = ns.getServer(server);
 
 	if (ns.fileExists('brutessh.exe')) {
 		ns.brutessh(server);
@@ -32,11 +31,11 @@ export function gainRootAccess(ns, server) {
 	if (ns.fileExists('sqlinject.exe')) {
 		ns.sqlinject(server);
 	}
-	if (ns.getServerNumPortsRequired(server) <= serverData.openPortCount) {
+	if (ns.hasRootAccess(server)) {
 		ns.nuke(server);
 	}
 	/* Requires Singularity 4-1
-	if (!serverData.backdoorInstalled) {
+	if (ns.hasRootAccess(server)) {
 		ns.installBackdoor(server);
 	}
 	*/
