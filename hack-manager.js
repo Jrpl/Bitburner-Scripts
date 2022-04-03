@@ -22,7 +22,7 @@ export function best_target(ns, arr) {
 			gainRootAccess(ns, server);
 		}
 
-		if (ns.hasRootAccess(server) && ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel() && server != 'home' && !ns.getPurchasedServers().includes(server)) {
+		if (ns.hasRootAccess(server) && ns.getServerRequiredHackingLevel(server) <= ns.getHackingLevel() && server != 'home' && !ns.getPurchasedServers().includes(server) && ns.getServerMoneyAvailable(server)) {
 			list.push(server);
 		}
 	})
@@ -61,9 +61,13 @@ async function little_prep(ns, hack_target, wt, gt, reserved_RAM) {
 			usable_RAM += ns.getServerMaxRam(host) - ns.getServerUsedRam(host);
 		}
 	})
+	let startTime = Date.now();
 	while (needed_RAM * c > usable_RAM) {
 		c -= .001;
 		await ns.sleep(1);
+		if (Date.now() > startTime + 240000) {
+			throw(Error("line 65, loop longer than 2 minutes either need more RAM or change value of c decrement"));
+		}
 	}
 
 	let weaken_threads = Math.floor(wt * c);
@@ -138,6 +142,7 @@ async function little_hack(ns, hack_target, weaken_threads, grow_threads, hack_t
 		}
 	})
 	let sec_increase;
+	let startTime = Date.now();
 	while(grow_threads * ns.getScriptRam('targeted-grow.js', 'home') + hack_threads * ns.getScriptRam('targeted-hack.js', 'home') + weaken_threads * ns.getScriptRam('targeted-weaken.js', 'home') > usable_RAM - host_servers.length) {
 		c += 1;
 		grow_threads = Math.floor(ns.growthAnalyze(hack_target, 1 / (1 - 1 / c)));
@@ -149,6 +154,9 @@ async function little_hack(ns, hack_target, weaken_threads, grow_threads, hack_t
 			await ns.sleep(1);
 		}
 		await ns.sleep(1);
+		if (Date.now() > startTime + 240000) {
+			throw(Error("line 65, loop longer than 2 minutes either need more RAM or change value of c decrement"));
+		}
 	}
 
 	if (hack_threads < 1 || weaken_threads < 1 || grow_threads < 1) {
@@ -245,8 +253,9 @@ export async function main(ns) {
 		const hack_threads = ns.hackAnalyzeThreads(hack_target, ns.getServerMoneyAvailable(hack_target) / 2);
 		const sec_increase = ns.hackAnalyzeSecurity(hack_threads) + ns.growthAnalyzeSecurity(grow_threads);
 		let weaken_threads = 1;
+		
 		while (ns.weakenAnalyze(weaken_threads) < sec_increase * 1.1) {
-			weaken_threads++;
+			weaken_threads += 5;
 			await ns.sleep(1);
 		}
 
@@ -273,7 +282,7 @@ export async function main(ns) {
 			const initial_growth_amount = .5 * ns.getServerMaxMoney(little_target) / ns.getServerMoneyAvailable(little_target);
 			let gt = 0;
 
-			if (initial_growth_amount > 1) {
+			if (initial_growth_amount > 1 && isFinite(initial_growth_amount)) {
 				gt = ns.growthAnalyze(little_target, initial_growth_amount);
 			}
 
