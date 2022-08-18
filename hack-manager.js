@@ -42,8 +42,8 @@ async function little_prep(ns, hack_target, wt, gt, reserved_RAM) {
 	for (let i = 0; i < full_list.length; i++) {
 		const server = full_list[i];
 		if (ns.hasRootAccess(server)) {
-			await ns.scp('targeted-grow.js', 'home', server);
-			await ns.scp('targeted-weaken.js', 'home', server);
+			await ns.scp('targeted-grow.js', server,'home');
+			await ns.scp('targeted-weaken.js', server, 'home');
 			host_servers.push(server);
 		}
 	}
@@ -122,9 +122,9 @@ async function little_hack(ns, hack_target, weaken_threads, grow_threads, hack_t
 	for (let i = 0; i < full_list.length; i++) {
 		const server = full_list[i];
 		if (ns.hasRootAccess(server)) {
-			await ns.scp('targeted-hack.js', 'home', server);
-			await ns.scp('targeted-grow.js', 'home', server);
-			await ns.scp('targeted-weaken.js', 'home', server);
+			await ns.scp('targeted-hack.js', server, 'home');
+			await ns.scp('targeted-grow.js', server, 'home');
+			await ns.scp('targeted-weaken.js', server, 'home');
 			host_servers.push(server);
 		}
 	}
@@ -403,9 +403,9 @@ export async function main(ns) {
 				}
 
 				// writes needed scripts to host server
-				await ns.scp('targeted-grow.js', server);
-				await ns.scp('targeted-hack.js', server);
-				await ns.scp('targeted-weaken.js', server);
+				await ns.scp('targeted-grow.js', server, 'home');
+				await ns.scp('targeted-hack.js', server, 'home');
+				await ns.scp('targeted-weaken.js', server, 'home');
 
 				// loops through a cycle of grow weaken and hack executions on the target
 				// each script will complete in order of grow hack weaken 2 milliseconds apart
