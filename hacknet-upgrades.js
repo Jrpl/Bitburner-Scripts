@@ -1,62 +1,66 @@
 /** @param {NS} ns **/
+const calcReturn = ({ level, ram, cores }) => {
+  return level * 1.6 * Math.pow(1.035, ram - 1) * (cores + 5) / 6
+}
+
+const levelRoI = (ns, { level, ram, cores }, index) => {
+    const oldRet = calcReturn({ level, ram, cores })
+    const newRet = calcReturn({ level: level + 1, ram, cores })
+
+    return (newRet - oldRet) / ns.hacknet.getLevelUpgradeCost(index, 1)
+}
+
+const ramRoI = (ns, { level, ram, cores }, index) => {
+    const oldRet = calcReturn({ level, ram, cores })
+    const newRet = calcReturn({ level, ram: ram * 2, cores })
+
+    return (newRet - oldRet) / ns.hacknet.getRamUpgradeCost(index, 1)
+}
+
+const coreRoI = (ns, { level, ram, cores }, index) => {
+    const oldRet = calcReturn({ level, ram, cores })
+    const newRet = calcReturn({ level , ram, cores: cores + 1 })
+
+    return (newRet - oldRet) / ns.hacknet.getCoreUpgradeCost(index, 1)
+}
+
 export async function main(ns, pct = ns.args[0], maxNodes = ns.args[1]) {
+    const typeMap = [
+      { desc: 'Level', cost: ns.hacknet.getLevelUpgradeCost, upgrade: ns.hacknet.upgradeLevel },
+      { desc: 'RAM', cost: ns.hacknet.getRamUpgradeCost, upgrade: ns.hacknet.upgradeRam },
+      { desc: 'Cores', cost: ns.hacknet.getCoreUpgradeCost, upgrade: ns.hacknet.upgradeCore }
+    ]
+
     while (true) {
-        let myMoney = ns.getServerMoneyAvailable('home');
-        let allowance = myMoney * (pct / 100);
+        const allowance = ns.getServerMoneyAvailable('home') * (pct / 100)
 
         if (ns.hacknet.getPurchaseNodeCost() < allowance && ns.hacknet.numNodes() < maxNodes) {
-            ns.print('Purchasing new node');
-            ns.hacknet.purchaseNode();
-            continue;
+            ns.print('Purchasing new node')
+            ns.hacknet.purchaseNode()
+            continue
         }
  
         for (let i = 0; i < ns.hacknet.numNodes(); i++) {
-            let node = ns.hacknet.getNodeStats(i);
-            let RoI = [];
-            let topRoI = 0;
+            const node = ns.hacknet.getNodeStats(i)
+            const RoI = [
+                node.level < 200 ? levelRoI(ns, node, i) : 0,
+                node.ram < 64 ? ramRoI(ns, node, i) : 0,
+                node.cores < 16 ? coreRoI(ns, node, i) : 0
+            ]
+            const topRoI = Math.max(...RoI)
+            const { desc, cost, upgrade } = typeMap[RoI.indexOf(topRoI)]
  
-            if (node.level < 200) {
-                RoI.push(((node.level + 1) * 1.6) * Math.pow(1.035, (node.ram - 1)) * ((node.cores + 5) / 6) / ns.hacknet.getLevelUpgradeCost(i, 1));
-            } else {
-                RoI.push(0);
-            }
- 
-            if (node.ram < 64) {
-                RoI.push((node.level * 1.6) * Math.pow(1.035, (node.ram * 2) - 1) * ((node.cores + 5) / 6) / ns.hacknet.getRamUpgradeCost(i, 1));
-            } else {
-                RoI.push(0);
-            }
- 
-            if (node.cores < 16) {
-                RoI.push((node.level * 1.6) * Math.pow(1.035, node.ram - 1) * ((node.cores + 6) / 6) / ns.hacknet.getCoreUpgradeCost(i, 1));
-            } else {
-                RoI.push(0);
-            }
- 
-            RoI.forEach(value => {
-                if (value > topRoI) {
-                    topRoI = value;
-                }
-            });
- 
-            if ( i === maxNodes - 1 && topRoI === 0) {
-                ns.print("Desired number of nodes reached and upgraded");
-                ns.scriptKill(ns.getScriptName(), ns.getHostname());
-            }
-            else if (topRoI === 0) {
-                ns.print("All upgrades maxed on node" + i);
-            } else if (topRoI == RoI[0] && ns.hacknet.getLevelUpgradeCost(i, 1) < allowance) {
-                ns.print('Upgrading Level on Node' + i);
-                ns.hacknet.upgradeLevel(i, 1);
-            } else if (topRoI == RoI[1] && ns.hacknet.getRamUpgradeCost(i, 1) < allowance) {
-                ns.print('Upgrading Ram on Node' + i);
-                ns.hacknet.upgradeRam(i, 1);
-            } else if (topRoI == RoI[2] && ns.hacknet.getCoreUpgradeCost(i, 1) < allowance) {
-                ns.print('Upgrading Core on Node' + i);
-                ns.hacknet.upgradeCore(i, 1);
+            if (i === maxNodes - 1 && topRoI === 0) {
+                ns.print('Desired number of nodes reached and upgraded')
+                ns.scriptKill(ns.getScriptName(), ns.getHostname())
+            } else if (topRoI === 0) {
+                ns.print('All upgrades maxed on node ' + i)
+            } else if (cost(i, 1) < allowance) {
+                ns.print('Upgrading ' + desc + ' on Node ' + i)
+                upgrade(i, 1)
             }
         }
  
-        await ns.sleep(1);
+        await ns.sleep(1)
     }
 }
