@@ -42,8 +42,8 @@ async function little_prep(ns, hack_target, wt, gt, reserved_RAM) {
 	for (let i = 0; i < full_list.length; i++) {
 		const server = full_list[i];
 		if (ns.hasRootAccess(server)) {
-			await ns.scp('targeted-grow.js', 'home', server);
-			await ns.scp('targeted-weaken.js', 'home', server);
+			await ns.scp('targeted-grow.js', server);
+			await ns.scp('targeted-weaken.js', server);
 			host_servers.push(server);
 		}
 	}
@@ -122,9 +122,9 @@ async function little_hack(ns, hack_target, weaken_threads, grow_threads, hack_t
 	for (let i = 0; i < full_list.length; i++) {
 		const server = full_list[i];
 		if (ns.hasRootAccess(server)) {
-			await ns.scp('targeted-hack.js', 'home', server);
-			await ns.scp('targeted-grow.js', 'home', server);
-			await ns.scp('targeted-weaken.js', 'home', server);
+			await ns.scp('targeted-hack.js', server);
+			await ns.scp('targeted-grow.js', server);
+			await ns.scp('targeted-weaken.js', server);
 			host_servers.push(server);
 		}
 	}
@@ -181,7 +181,7 @@ async function little_hack(ns, hack_target, weaken_threads, grow_threads, hack_t
 					threads = weaken_threads;
 				}
 				if (threads >= 1) {
-					ns.exec('targeted-weaken.js', server, threads, threads, hack_target, n);
+					ns.exec('targeted-weaken.js', server, Math.floor(threads), Math.floor(threads), hack_target, n);
 					weaken_threads -= threads;
 					await ns.sleep(5);
 				}
@@ -197,7 +197,7 @@ async function little_hack(ns, hack_target, weaken_threads, grow_threads, hack_t
 					threads = grow_threads;
 				}
 				if (threads >= 1) {
-					ns.exec('targeted-grow.js', server, threads, threads, ns.getWeakenTime(hack_target) - ns.getGrowTime(hack_target) - 500, hack_target, n);
+					ns.exec('targeted-grow.js', server, Math.floor(threads), Math.floor(threads), ns.getWeakenTime(hack_target) - ns.getGrowTime(hack_target) - 500, hack_target, n);
 					grow_threads -= threads;
 					await ns.sleep(5);
 				}
@@ -213,7 +213,7 @@ async function little_hack(ns, hack_target, weaken_threads, grow_threads, hack_t
 					threads = hack_threads;
 				}
 				if (threads >= 1) {
-					ns.exec('targeted-hack.js', server, threads, threads, ns.getWeakenTime(hack_target) - ns.getHackTime(hack_target) + 500, hack_target, n, threads);
+					ns.exec('targeted-hack.js', server, Math.floor(threads), Math.floor(threads), ns.getWeakenTime(hack_target) - ns.getHackTime(hack_target) + 500, hack_target, n, threads);
 					hack_threads -= threads;
 					await ns.sleep(5);
 				}
